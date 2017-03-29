@@ -13,6 +13,20 @@ REST_ROUTER.prototype.handleRoutes = function(router,connection,md5) {
 
     router.get("/users",function(req,res){
         var query = "SELECT * FROM ??";
+        var table = ["commandes"];
+        query = mysql.format(query,table);
+        connection.query(query,function(err,rows){
+            if(err) {
+                res.json({"Error" : true, "Message" : "Error executing MySQL query"});
+            } else {
+                res.json({"Error" : false, "Message" : "Success", "Users" : rows});
+            }
+        });
+    });
+
+
+    router.get("/users",function(req,res){
+        var query = "SELECT * FROM ??";
         var table = ["user_login"];
         query = mysql.format(query,table);
         connection.query(query,function(err,rows){
