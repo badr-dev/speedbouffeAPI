@@ -18,12 +18,13 @@ REST.prototype.connectMysql = function() {
         user     : 'root',
         password : 'etnaarbd',
         database : 'speedbouffe',
-        debug    :  false
+        debug    :  true
     });
     pool.getConnection(function(err,connection){
         if(err) {
           self.stop(err);
         } else {
+        debugger;
           self.configureExpress(connection);
         }
     });
