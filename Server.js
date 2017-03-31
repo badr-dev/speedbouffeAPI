@@ -18,12 +18,13 @@ REST.prototype.connectMysql = function() {
         user     : 'root',
         password : 'etnaarbd',
         database : 'speedbouffe',
-        debug    :  false
+        debug    :  true
     });
     pool.getConnection(function(err,connection){
         if(err) {
           self.stop(err);
         } else {
+        debugger;
           self.configureExpress(connection);
         }
     });
@@ -34,7 +35,7 @@ REST.prototype.configureExpress = function(connection) {
       app.use(bodyParser.urlencoded({ extended: true }));
       app.use(bodyParser.json());
       var router = express.Router();
-      app.use('/api', router);
+      app.use('/speedbouffe', router);
       var rest_router = new rest(router,connection,md5);
       self.startServer();
 }

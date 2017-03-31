@@ -8,33 +8,58 @@ function REST_ROUTER(router,connection,md5) {
 REST_ROUTER.prototype.handleRoutes = function(router,connection,md5) {
     var self = this;
     router.get("/",function(req,res){
-        res.json({"Message" : "Hello World !"});
+        res.json({"Message" : "SpeedBouffe REST API"});
     });
 
-    router.get("/users",function(req,res){
+    router.get("/commandes",function(req,res){
         var query = "SELECT * FROM ??";
-        var table = ["user_login"];
+        var table = ["commandes"];
         query = mysql.format(query,table);
-        connection.query(query,function(err,rows){
+        connection.query(query,function(err,rows) {
             if(err) {
                 res.json({"Error" : true, "Message" : "Error executing MySQL query"});
             } else {
-                res.json({"Error" : false, "Message" : "Success", "Users" : rows});
+                res.json({"Error" : false, "Message" : "Success", "Commandes" : rows});
             }
         });
     });
 
-    router.get("/users/:user_id",function(req,res){
+    router.get("/commandes/:id",function(req,res){
         var query = "SELECT * FROM ?? WHERE ??=?";
-        var table = ["user_login","user_id",req.params.user_id];
+        var table = ["commandes","id",req.params.id];
         query = mysql.format(query,table);
         connection.query(query,function(err,rows){
             if(err) {
                 res.json({"Error" : true, "Message" : "Error executing MySQL query"});
             } else {
-                res.json({"Error" : false, "Message" : "Success", "Users" : rows});
+                res.json({"Error" : false, "Message" : "Success", "Commandes" : rows});
             }
         });
+    });
+
+    router.post("/import", function(req, res) {
+        res.json({
+            "Acheteur" : req.body.Acheteur,
+            "Infos_commande" : req.body.Film,
+            "Details_commande" : req.body.Details_commande
+        });
+
+        var query = "INSERT INTO ??(??, ??, ??, ??, ??, ??) VALUES (?, ?, ?, ?, ?, ?)";
+        var table = [
+            "acheteur",
+            "nom", 
+            "prenom", 
+            "age", 
+            "email", 
+            "civilite_id", 
+            "statut_id",
+            req.body.Acheteur.Nom,
+            req.body.Acheteur.Prenom,
+            req.body.Acheteur.Age,
+            req.body.Acheteur.Email,
+            2,
+            1
+        ];
     });
 
     router.post("/users",function(req,res){
