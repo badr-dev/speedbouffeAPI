@@ -41,7 +41,7 @@ app.use((err, req, res, next) => {
   }
 
   next(err);
-};
+});
 
 app.use((err, req, res, next) => {
   if (!err) return next();
@@ -52,7 +52,7 @@ app.use((err, req, res, next) => {
     status: err.status,
     errors: err.errors || []
   });
-};
+});
 
 app.listen(PORT, function () {
   console.info('[Health] Web server start listening at: http://%s:%s', 'localhost', PORT);
