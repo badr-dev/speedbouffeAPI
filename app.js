@@ -3,15 +3,21 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const bunnymq = require('bunnymq')({
-  host: 'amqp://nzgmkclf:XjPG1TRprZiDChCgreL36AFqA6MxaUMH@lark.rmq.cloudamqp.com/nzgmkclf'
+    host: 'amqp://nzgmkclf:XjPG1TRprZiDChCgreL36AFqA6MxaUMH@lark.rmq.cloudamqp.com/nzgmkclf'
 }).producer;
 
 const app = express();
-const PORT = parseInt(process.env.PORT, 10) || 3000;
+const PORT = parseInt(process.env.PORT, 10) || 443;
 
 app.enable('trust proxy');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true, limit: '16mb' }));
+
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
 
 app.get('/', (req, res, next) => {
     res.json({ route : '/'});
@@ -60,6 +66,26 @@ app.get('/commandes/:id', (req, res, next) => {
 	});
 });
 
+
+// Recupere toutes les sous commandes avec un commande ID
+app.get('/repas_commande', (req, res, next) => {
+
+    let queryRepasCmd = `SELECT * FROM repas_commande ;`;
+
+    bunnymq.produce('sql:query:run', queryRepasCmd , { rpc: true} )
+        .then((result) => {
+	    if (!result){
+		return res.status(400);
+	    }
+	    res.json(result);
+	})
+        .catch((err) => {
+	    console.error(err);
+	    next(err);
+	});
+});
+
+
 // Recupere toutes les sous commandes avec un commande ID
 app.get('/repas_commande/:id', (req, res, next) => {
 
@@ -79,6 +105,7 @@ app.get('/repas_commande/:id', (req, res, next) => {
 	    next(err);
 	});
 });
+
 
 // Requette d'import des commandes
 app.post('/import', function(req, res, next) {
