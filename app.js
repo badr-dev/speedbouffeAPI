@@ -3,11 +3,13 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const bunnymq = require('bunnymq')({
-    host: 'amqp://nzgmkclf:XjPG1TRprZiDChCgreL36AFqA6MxaUMH@lark.rmq.cloudamqp.com/nzgmkclf'
+    host: 'amqp://nzgmkclf:XjPG1TRprZiDChCgreL36AFqA6MxaUMH@lark.rmq.cloudamqp.com/nzgmkclf',
+    prefetch: 5,
+    requeue: true
 }).producer;
 
 const app = express();
-const PORT = parseInt(process.env.PORT, 10) || 443;
+const PORT = parseInt(process.env.PORT, 10) || 3000;
 
 app.enable('trust proxy');
 app.use(bodyParser.json());
@@ -24,14 +26,14 @@ app.get('/', (req, res, next) => {
 });
 
 app.get('/commandes', (req, res, next) => {
-    
     let queryCmd = `SELECT c.*,
 	a.nom AS acheteur_nom, a.prenom AS acheteur_prenom, a.age AS acheteur_age, a.email AS acheteur_email,
 	a.civilite_id AS acheteur_civilite, a.statut_id AS acheteur_statut
 	FROM commandes AS c
     LEFT JOIN acheteur AS a ON a.id = c.acheteur_id ;`;
+
     
-  bunnymq.produce('sql:query:run', queryCmd, { rpc: true })
+    bunnymq.produce('sql:query:run', queryCmd, { rpc: true })
   .then((result) => {
       if (!result){
 	  return res.status(400);
@@ -46,14 +48,15 @@ app.get('/commandes', (req, res, next) => {
 
 // Recupere une commande avec un commande ID
 app.get('/commandes/:id', (req, res, next) => {
-
     let queryCmdById = `SELECT c.*,
 	a.nom AS acheteur_nom, a.prenom AS acheteur_prenom, a.age AS acheteur_age, a.email AS acheteur_email,
 	a.civilite_id AS acheteur_civilite, a.statut_id AS acheteur_statut
     FROM commandes AS c
     LEFT JOIN acheteur AS a ON a.id = c.acheteur_id WHERE c.id = `;
 
-    bunnymq.produce('sql:query:run', queryCmdById + req.params.id, { rpc: true })
+    console.log(`Running query: ${queryCmdById}`);
+   
+   bunnymq.produce('sql:query:run', queryCmdById + req.params.id, { rpc: true })
 	.then((result) => {
 	    if (!result){
 		return res.status(400);
@@ -72,7 +75,7 @@ app.get('/repas_commande', (req, res, next) => {
 
     let queryRepasCmd = `SELECT * FROM repas_commande ;`;
 
-    bunnymq.produce('sql:query:run', queryRepasCmd , { rpc: true} )
+    bunnymq.produce('sql:query:run', queryRepasCmd , { rpc: true } )
         .then((result) => {
 	    if (!result){
 		return res.status(400);
@@ -123,7 +126,7 @@ app.post('/import', function(req, res, next) {
 	    console.log('result import : ' + result);
 	    
 	    if (!result){
-		return res.status(400);r
+		return res.status(400);
 	    }
 
 	    return bunnymq.produce('sql:query:run', `INSERT INTO commandes (jour_commande, heure_livraison, type_payement_id, acheteur_id)` +
